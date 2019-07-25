@@ -1,0 +1,21 @@
+import numpy as np
+from flask import Flask, abort, jsonify, request
+import pickle
+
+vgsmodel = pickle.load(open('vgs_model.pkl', 'rb'))
+
+app = Flask(__name__)
+
+@app.route('/api', methods = ['POST'])
+def make_predict():
+    #get data from post (4 features)
+    data = request.get_json(force=True)
+    predict_request = [data['Platform'],data['Genre'],data['Publisher'], data['Developer'],data['Year'],data['Critic_Score'],data['ESRB_Rating']]
+    predict_request =np.array(predict_request).reshape(1, -1)
+    y_hat = vgsmodel.predict(predict_request)
+    #send preds back
+    output = {'y_hat': int(y_hat[0])}
+    return jsonify(results = output)
+
+if __name__ =='__main__':
+    app.run(port = 9000, debug= True)
